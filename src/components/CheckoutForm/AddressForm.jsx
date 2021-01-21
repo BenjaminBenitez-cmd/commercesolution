@@ -19,12 +19,6 @@ function AddressForm({ checkoutToken, next }) {
     const subdivisions = Object.entries(shippingSubdivisions).map(([code, name]) => ({ id: code, label: name }));
     const options = shippingOptions.map((sO) => ({ id:sO.id, label: `${sO.description} - (${sO.price.formatted_with_symbol})`}));
 
-    const fetchShippingCountries = async (checkoutTokenId) => {
-        const { countries } = await commerce.services.localeListShippingCountries(checkoutTokenId);
-
-        setShippingCountries(countries);
-        setShippingCountry(Object.keys(countries)[0]);
-    }
 
     const fetchSubdivisions = async(countryCode) => {
         const { subdivisions } = await commerce.services.localeListSubdivisions(countryCode);
@@ -37,21 +31,26 @@ function AddressForm({ checkoutToken, next }) {
         const options = await commerce.checkout.getShippingOptions(checkoutTokenId, { country, region });
 
         setShippingOptions(options);
-        console.log(options);
         setShippingOption(options[0].id);
     }
 
     useEffect(() => {
+        const fetchShippingCountries = async (checkoutTokenId) => {
+            const { countries } = await commerce.services.localeListShippingCountries(checkoutTokenId);
+
+            setShippingCountries(countries);
+            setShippingCountry(Object.keys(countries)[0]);
+        }
         fetchShippingCountries(checkoutToken.id);
-    }, []);
+    }, [checkoutToken.id]);
 
     useEffect(() => {
         if(shippingCountry) fetchSubdivisions(shippingCountry)
-    }, [shippingCountry]);
+    }, [shippingCountry,]);
 
     useEffect(() => {
         if(shippingSubdivision) fetchShippingOptions(checkoutToken.id, shippingCountry, shippingSubdivision);
-    }, [shippingSubdivision]);
+    }, [shippingSubdivision, checkoutToken.id, shippingCountry]);
 
 
     return (
